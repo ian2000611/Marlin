@@ -582,12 +582,13 @@ void Planner::check_axes_activity() {
         SERIAL_ECHOLNPGM(MSG_ERR_COLD_EXTRUDE_STOP);
       }
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        if (labs(de) > axis_steps_per_mm[E_AXIS] * (EXTRUDE_MAXLENGTH)) {
+        if ((ignore_extrude_max_length == 0) && (labs(de) > axis_steps_per_mm[E_AXIS] * (EXTRUDE_MAXLENGTH))) {
           position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
           de = 0; // no difference
           SERIAL_ECHO_START;
           SERIAL_ECHOLNPGM(MSG_ERR_LONG_EXTRUDE_STOP);
         }
+        ignore_extrude_max_length = 0;
       #endif
     }
   #endif

@@ -329,6 +329,10 @@ float code_value_temp_diff();
   extern uint8_t host_keepalive_interval;
 #endif
 
+#if ENABLED(PREVENT_LENGTHY_EXTRUDE)
+  extern bool ignore_extrude_max_length;
+#endif
+
 #if FAN_COUNT > 0
   extern int fanSpeeds[FAN_COUNT];
 #endif

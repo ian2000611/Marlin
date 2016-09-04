@@ -635,6 +635,10 @@ inline void sync_plan_position_e() { planner.set_e_position_mm(current_position[
   #define SYNC_PLAN_POSITION_KINEMATIC() sync_plan_position()
 #endif
 
+#if ENABLED(PREVENT_LENGTHY_EXTRUDE)
+  bool ignore_extrude_max_length = 0;
+#endif
+
 #if ENABLED(SDSUPPORT)
   #include "SdFatUtil.h"
   int freeMemory() { return SdFatUtil::FreeRam(); }
@@ -6251,10 +6255,21 @@ inline void gcode_M503() {
 
     // Define runplan for move axes
     #if ENABLED(DELTA)
-      #define RUNPLAN(RATE_MM_S) inverse_kinematics(destination); \
-                                 planner.buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], destination[E_AXIS], RATE_MM_S, active_extruder);
+      #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
+        #define RUNPLAN calculate_delta(destination); \
+                ignore_extrude_max_legth = 1; \
+                plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], destination[E_AXIS], fr60, active_extruder);
+      #else
+        #define RUNPLAN calculate_delta(destination); \
+                plan_buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], destination[E_AXIS], fr60, active_extruder);
+      #endif
     #else
-      #define RUNPLAN(RATE_MM_S) line_to_destination(MMS_TO_MMM(RATE_MM_S));
+      #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
+        #define RUNPLAN ignore_extrude_max_length = 1; \
+                 line_to_destination();
+      #else
+        #define RUNPLAN line_to_destination();
+      #endif
     #endif
 
     KEEPALIVE_STATE(IN_HANDLER);
